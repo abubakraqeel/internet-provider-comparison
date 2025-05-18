@@ -1,21 +1,22 @@
-from flask import Blueprint, jsonify
-from app.services.servus_speed_client import fetch_servus_speed_offers
+from flask import Blueprint, jsonify, request
+from app.services.servus_speed_client import get_servus_offers
+
 main_routes = Blueprint('main_rotues', __name__)
 
-@main_routes.route('/hello')
+@main_routes.route("/api/hello", methods=["GET"])
 def hello():
-    return "Hello world from routes.py using Blueprint"
+    return jsonify({"message": "Hello, browser!"})
 
 
-@main_routes.route("/api/offers", methods=["GET"])
+@main_routes.route("/api/offers", methods=["POST"])
 def get_offers():
-    # TEMPORARY: Hardcoded test address
-    test_address = {
-        "street": "Musterstraße",
-        "houseNumber": "12",
-        "city": "Berlin",
-        "plz": "10115"
-    }
+    data = request.get_json()
 
-    offers = fetch_servus_speed_offers(test_address)
+    if not data or "address" not in data:
+        return jsonify({"error": "Missing address"}), 400
+
+    address = data["address"]
+    print("Address payload:", address)
+
+    offers = get_servus_offers(address)
     return jsonify(offers)
