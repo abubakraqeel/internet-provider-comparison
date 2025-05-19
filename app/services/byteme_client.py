@@ -217,25 +217,25 @@ def get_byteme_offers(address_details):
     return all_normalized_offers
 
 # --- Example for direct testing (optional) ---
-if __name__ == '__main__':
-    # Load .env variables if you're using python-dotenv for local testing
-    from dotenv import load_dotenv
-    load_dotenv()
-    BYTEME_API_KEY = os.getenv("BYTEME_API_KEY") # Re-assign for local scope
+# if __name__ == '__main__':
+#     # Load .env variables if you're using python-dotenv for local testing
+#     from dotenv import load_dotenv
+#     load_dotenv()
+#     BYTEME_API_KEY = os.getenv("BYTEME_API_KEY") # Re-assign for local scope
 
-    if not BYTEME_API_KEY:
-        print("Please ensure BYTEME_API_KEY is set in your environment.")
-    else:
-        sample_address = {
-            "strasse": "Teststraße", # Use an address likely to have offers
-            "hausnummer": "1",
-            "postleitzahl": "12345", # Use a valid PLZ for testing
-            "stadt": "Berlin"
-        }
-        offers = get_byteme_offers(sample_address)
-        import json
-        if offers:
-            print(f"\n--- Found {len(offers)} ByteMe Offers ---")
-            print(json.dumps(offers, indent=2))
-        else:
-            print("\n--- No ByteMe offers found or error occurred. ---")
+#     if not BYTEME_API_KEY:
+#         print("Please ensure BYTEME_API_KEY is set in your environment.")
+#     else:
+#         sample_address = {
+#             "strasse": "Teststraße", # Use an address likely to have offers
+#             "hausnummer": "1",
+#             "postleitzahl": "12345", # Use a valid PLZ for testing
+#             "stadt": "Berlin"
+#         }
+#         offers = get_byteme_offers(sample_address)
+#         import json
+#         if offers:
+#             print(f"\n--- Found {len(offers)} ByteMe Offers ---")
+#             print(json.dumps(offers, indent=2))
+#         else:
+#             print("\n--- No ByteMe offers found or error occurred. ---")
