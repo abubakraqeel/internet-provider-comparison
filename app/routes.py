@@ -1,7 +1,10 @@
 from flask import Blueprint, jsonify, request
+from app.services.ping_perfect_client import get_ping_perfect_offers
 from app.services.servus_speed_client import get_servus_offers
 from app.services.byteme_client import get_byteme_offers
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from app.services.verbyndich_client import get_verbyndich_offers
+from app.services.webwunder_client import get_webwunder_offers
 
 main_routes = Blueprint('main_rotues', __name__)
 
@@ -29,9 +32,9 @@ def get_offers():
     provider_tasks = {
         "ServusSpeed": get_servus_offers,
         "ByteMe": get_byteme_offers,
-        # "WebWunder": get_webwunder_offers,
-        # "PingPerfect": get_ping_perfect_offers,
-        # "VerbynDich": get_verbyndich_offers,
+        "WebWunder": get_webwunder_offers,
+        "PingPerfect": lambda addr: get_ping_perfect_offers(addr, wants_fiber_param=True), # Use lambda to pass extra arg
+        "VerbynDich": get_verbyndich_offers,
     }
 
     # Use ThreadPoolExecutor to call all provider functions concurrently
