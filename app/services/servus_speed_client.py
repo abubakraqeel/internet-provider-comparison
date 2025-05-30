@@ -61,8 +61,8 @@ def _normalize_servus_speed_offer(product_detail_data, product_id):
     if limit_from_val is not None:
         benefits.append(f"Data limit: {limit_from_val} GB/month")
 
-    if max_age is not None:
-        benefits.append(f"Offer valid for customers up to {max_age} years old")
+    # if max_age is not None:
+    #     benefits.append(f"Offer valid for customers up to {max_age} years old")
     '''{
     "_provider_specific_id": "a3cbbf1b918bec17",
     "ageRestrictionMax": 31,

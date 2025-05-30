@@ -95,11 +95,11 @@ def _parse_verbyndich_description(description_str):
         details["monthlyPriceEurAfter2Years"] = float(price_after_match.group(1))
 
     # 9. TV (Premium plans)
-    tv_match = re.search(r"Fernsehsender enthalten ([^.]+)\.", description_str) # Captures text until next period
-    if tv_match:
-        details["tv"] = tv_match.group(1).strip()
-        if details["tv"]: # Check if something was captured
-             details["raw_benefits_text"].append(f"TV included: {details['tv']}")
+    # tv_match = re.search(r"Fernsehsender enthalten ([^.]+)\.", description_str) # Captures text until next period
+    # if tv_match:
+    #     details["tv"] = tv_match.group(1).strip()
+    #     if details["tv"]: # Check if something was captured
+    #          details["raw_benefits_text"].append(f"TV included: {details['tv']}")
 
 
     # 10. Age Restriction (Young tariffs)

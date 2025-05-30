@@ -5,12 +5,20 @@ from app.services.byteme_client import get_byteme_offers
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from app.services.verbyndich_client import get_verbyndich_offers
 from app.services.webwunder_client import get_webwunder_offers
+import uuid # For generating unique IDs
+import json # For loading/dumping JSON
+from app import db # Import the db instance from app/__init__.py (or app.models if you move it)
+from app import SharedLink # Import your SharedLink model (assuming it's in app/models.py)
+                              # If SharedLink is in app/__init__.py, you might need to adjust import
+                              # e.g., from app import SharedLink
+
 
 main_routes = Blueprint('main_rotues', __name__)
 
 
 @main_routes.route("/api/offers", methods=["POST", 'OPTIONS'])
 def get_offers():
+
 
     if request.method == 'OPTIONS':
         # This block should ideally not be hit if flask-cors is working globally.
@@ -47,7 +55,7 @@ def get_offers():
         "ServusSpeed": get_servus_offers,
         "ByteMe": get_byteme_offers,
         "WebWunder": get_webwunder_offers,
-        "PingPerfect": lambda addr: get_ping_perfect_offers(addr, wants_fiber_param=True), # Use lambda to pass extra arg
+        "PingPerfect": get_ping_perfect_offers, # Use lambda to pass extra arg
         "VerbynDich": get_verbyndich_offers,
     }
 
@@ -84,3 +92,69 @@ def get_offers():
     # Or the frontend can handle that.
 
     return jsonify(all_offers_from_all_providers)
+
+
+# --- NEW ROUTES FOR SHARING ---
+
+@main_routes.route('/api/share', methods=['POST'])
+def create_share_link():
+    if not request.is_json:
+        return jsonify({"error": "Request must be JSON"}), 400
+    
+    offers_data = request.get_json() # This should be the array of normalized offers
+
+    if not isinstance(offers_data, list):
+        return jsonify({"error": "Payload must be a list of offers"}), 400
+    
+    if not offers_data: # Empty list of offers
+        return jsonify({"error": "Cannot share an empty list of offers"}), 400
+
+    try:
+        # Generate a short, reasonably unique ID
+        share_id = uuid.uuid4().hex[:10] # Example: 10-char hex string
+        
+        # Ensure ID is unique (very unlikely collision with 10 hex chars, but good practice for critical systems)
+        # For this challenge, we can assume it's unique enough.
+        # while SharedLink.query.get(share_id):
+        #     share_id = uuid.uuid4().hex[:10]
+
+        offers_json_string = json.dumps(offers_data) # Convert list of dicts to JSON string
+
+        new_shared_link = SharedLink(id=share_id, offers_json=offers_json_string)
+        db.session.add(new_shared_link)
+        db.session.commit()
+        
+        print(f"API Route: Created share link with ID: {share_id}")
+        return jsonify({"shareId": share_id, "message": "Share link created successfully"}), 201
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"API Route: Error creating share link: {e}")
+        # import traceback; traceback.print_exc() # For detailed error
+        return jsonify({"error": "Failed to create share link", "details": str(e)}), 500
+
+
+@main_routes.route('/api/share/<share_id>', methods=['GET'])
+def get_shared_link_data(share_id):
+    if not share_id or len(share_id) > 16: # Basic validation
+        return jsonify({"error": "Invalid share ID format"}), 400
+
+    try:
+        shared_link_entry = SharedLink.query.get(share_id)
+
+        if shared_link_entry:
+            offers_data = json.loads(shared_link_entry.offers_json) # Convert JSON string back to Python list
+            print(f"API Route: Retrieved shared link data for ID: {share_id}")
+            return jsonify(offers_data), 200
+        else:
+            print(f"API Route: Share link not found for ID: {share_id}")
+            return jsonify({"error": "Share link not found"}), 404
+            
+    except json.JSONDecodeError:
+        print(f"API Route: Error decoding stored JSON for share ID: {share_id}")
+        return jsonify({"error": "Corrupted share data"}), 500
+    except Exception as e:
+        print(f"API Route: Error retrieving share link: {e}")
+        return jsonify({"error": "Failed to retrieve share link", "details": str(e)}), 500
+
+# --- END NEW ROUTES FOR SHARING ---

@@ -68,8 +68,8 @@ def _normalize_byteme_offer(offer_data_dict):
             benefits.append("Installation service included")
 
         tv_package = offer_data_dict.get("tv") # Assuming this is a string describing the TV package
-        if tv_package and tv_package.strip() and tv_package.lower() != "none":
-            benefits.append(f"TV package: {tv_package}")
+        # if tv_package and tv_package.strip() and tv_package.lower() != "none":
+        #     benefits.append(f"TV package: {tv_package}")
 
 
         # Data limit: 'limitFrom' (e.g., "100" for 100GB)

@@ -37,10 +37,7 @@ def _normalize_ping_perfect_offer(offer_data, index): # offer_data is an Interne
     try:
         # --- Extract from top-level InternetProduct ---
         api_provider_name = offer_data.get("providerName", f"PingPerfectOffer_{index}")
-        # For Ping Perfect, it's likely their own name, or we can standardize.
-        # The `providerName` from API might be "Ping Perfect" or a sub-brand.
-        # Let's use "Ping Perfect" as the standardized name.
-        
+
         product_info = offer_data.get("productInfo") # This is optional in WSDL, but crucial
         pricing_details = offer_data.get("pricingDetails") # Also optional
 
@@ -95,8 +92,8 @@ def _normalize_ping_perfect_offer(offer_data, index): # offer_data is an Interne
         elif one_time_cost_eur > 0.0:
             benefits_list.append(f"Installation fee: €{one_time_cost_eur:.2f}")
 
-        if tv_package_api and tv_package_api.strip() and tv_package_api.lower() != "none":
-            benefits_list.append(f"TV: {tv_package_api}")
+        # if tv_package_api and tv_package_api.strip() and tv_package_api.lower() != "none":
+        #     benefits_list.append(f"TV: {tv_package_api}")
         
         if limit_from_api is not None:
             benefits_list.append(f"Data limit: {limit_from_api} GB/month")
@@ -202,10 +199,10 @@ def get_ping_perfect_offers(address_details, wants_fiber_param=True): # Added wa
         if isinstance(offers_list_json, list):
             print(f"Ping Perfect: Received {len(offers_list_json)} offers.")
             for i, offer_item in enumerate(offers_list_json):
-                # normalized = _normalize_ping_perfect_offer(offer_item, i)
-                # if normalized:
-                #     all_normalized_offers.append(normalized)
-                all_normalized_offers.append(offer_item)
+                normalized = _normalize_ping_perfect_offer(offer_item, i)
+                if normalized:
+                    all_normalized_offers.append(normalized)
+                
         else:
             print(f"Ping Perfect: Expected a list of offers, but received type: {type(offers_list_json)}. Response: {offers_list_json}")
             
