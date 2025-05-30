@@ -73,7 +73,7 @@ function App() {
 
     try {
       const jsonBody = JSON.stringify(addressDetails);
-      const response = await fetch('http://localhost:5001/api/offers', { 
+      const response = await fetch('/api/offers', { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: jsonBody,
@@ -135,7 +135,7 @@ function App() {
     setShareableLink('');
     try {
       // *** UPDATED FETCH URL FOR CREATING SHARE LINK ***
-      const response = await fetch('http://localhost:5001/api/share', { 
+      const response = await fetch('/api/share', { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(displayedOffers)

@@ -21,7 +21,7 @@ function SharedResultsPage() {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await fetch(`http://localhost:5001/api/share/${shareId}`); // Use correct backend port
+        const response = await fetch(`/api/share/${shareId}`); // Use correct backend port
         if (!response.ok) {
           let errorData;
           try { errorData = await response.json(); }
