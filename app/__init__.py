@@ -1,6 +1,6 @@
 # app/__init__.py
 import os
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv # Make sure this is imported
@@ -29,7 +29,9 @@ def create_app():
     else:
         print(f"Flask __init__: .env file not found at {dotenv_path}, relying on system env vars.")
 
-    app = Flask(__name__)
+    # Set up static folder for React build
+    static_folder = os.path.join(project_root, 'frontend', 'build')
+    app = Flask(__name__, static_folder=static_folder)
     CORS(app)
     
     # --- Database Configuration ---
@@ -43,7 +45,15 @@ def create_app():
     # --- Import and Register Blueprints ---
     from .routes import main_routes 
     app.register_blueprint(main_routes)
-    # print(f"Flask __init__: Registered blueprint '{api_bp.name}'") # Optional log
+    
+    # --- Serve React App ---
+    @app.route('/', defaults={'path': ''})
+    @app.route('/<path:path>')
+    def serve(path):
+        if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+            return send_from_directory(app.static_folder, path)
+        else:
+            return send_from_directory(app.static_folder, 'index.html')
     
     # --- Create Database Tables ---
     # This needs to be within an app context to access app.config for the DB URI
