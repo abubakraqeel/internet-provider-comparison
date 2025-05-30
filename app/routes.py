@@ -8,26 +8,40 @@ from app.services.webwunder_client import get_webwunder_offers
 
 main_routes = Blueprint('main_rotues', __name__)
 
-@main_routes.route("/api/hello", methods=["GET"])
-def hello():
-    return jsonify({"message": "Hello, browser!"})
 
-
-@main_routes.route("/api/offers", methods=["POST"])
+@main_routes.route("/api/offers", methods=["POST", 'OPTIONS'])
 def get_offers():
-    data = request.get_json()
 
-    if not data or "address" not in data:
-        return jsonify({"error": "Missing address"}), 400
+    if request.method == 'OPTIONS':
+        # This block should ideally not be hit if flask-cors is working globally.
+        # If it is hit, it means flask-cors didn't fully handle the preflight.
+        print("Flask Route: Manually hit OPTIONS block. This is unexpected if global CORS(app) is working.")
+        # Return a minimal valid response. flask-cors *might* still augment this.
+        return jsonify(message="OPTIONS preflight processed by route"), 200
 
-    address = data["address"]
-    print("Address payload:", address)
+    # --- POST Request Logic ---
+    print(f"--- Received POST to /api/offers ---")
+    print(f"Request Content-Type Header: {request.headers.get('Content-Type')}")
+    print(f"Flask's interpretation (request.is_json): {request.is_json}")
+
+    if not request.is_json:
+        # ... your existing 400 error handling ...
+        return jsonify({"error": "Request must be JSON"}), 400
+    address = request.get_json()
+ # `data` IS the address payload
+
+    # Add some basic validation for the payload itself
+    if not isinstance(address, dict) or "strasse" not in address: # Example check
+        print(f"Flask Route: ERROR - Invalid address structure or missing 'strasse'. Payload: {address}")
+        return jsonify({"error": "Invalid address payload structure or missing required fields."}), 400
+
+    print("Address payload successfully received by Flask:", address)
 
     # offers = get_servus_offers(address)
     # return jsonify(offers)
     all_offers_from_all_providers = []
     
-    # List of provider functions to call. Each function should take 'address_payload'
+    # List of provider functions to call. Each function should take 'address'
     # and return a list of normalized offers or an empty list on error.
     provider_tasks = {
         "ServusSpeed": get_servus_offers,
