@@ -14,14 +14,7 @@ from app import SharedLink # Import your SharedLink model (assuming it's in app/
 
 
 main_routes = Blueprint('main_rotues', __name__)
-@main_routes.route('/debug/db')
-def debug_db():
-    try:
-        with app.app_context():
-            db.create_all()
-            return "Database connection successful!"
-    except Exception as e:
-        return f"Database error: {str(e)}"
+
 
 
 
