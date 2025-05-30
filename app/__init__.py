@@ -34,11 +34,17 @@ def create_app():
     app = Flask(__name__, static_folder=static_folder)
     CORS(app)
     
+    # # --- Database Configuration ---
+    # app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or \
+    #     'sqlite:///' + os.path.join(project_root, 'shared_links.db') # DB in project root
+    # print(f"Flask __init__: SQLALCHEMY_DATABASE_URI set to: {app.config['SQLALCHEMY_DATABASE_URI']}")
+    # app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     # --- Database Configuration ---
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or \
-        'sqlite:///' + os.path.join(project_root, 'shared_links.db') # DB in project root
+    # --- Database Configuration ---
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(project_root, 'shared_links.db')
     print(f"Flask __init__: SQLALCHEMY_DATABASE_URI set to: {app.config['SQLALCHEMY_DATABASE_URI']}")
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 
     db.init_app(app) 
     
