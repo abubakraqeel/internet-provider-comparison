@@ -1,5 +1,5 @@
 // src/AddressForm.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   FormControl,
@@ -12,38 +12,56 @@ import {
   AlertIcon
 } from '@chakra-ui/react';
 
-// The 'onSubmitAddress' prop will be a function passed down from App.js
-function AddressForm({ onSubmitAddress, isLoading }) {
-  // State for each input field
-  // Using German keys to match what our Flask backend expects for the combined call
+// No localStorage key needed here; App.js will manage address persistence related to searches.
+
+function AddressForm({ onSubmitAddress, isLoading, currentAddress }) { // Renamed prop from initialValues
   const [strasse, setStrasse] = useState('');
   const [hausnummer, setHausnummer] = useState('');
   const [postleitzahl, setPostleitzahl] = useState('');
   const [stadt, setStadt] = useState('');
-  //const [land, setLand] = useState('DE'); // Default to DE, can be input later if needed
-  const land = 'DE';
-  const [error, setError] = useState(''); // For form-level validation errors
+  const land = 'DE'; // Kept as constant
+  const [error, setError] = useState('');
+
+  // Effect to pre-fill form fields when the 'currentAddress' prop (from App.js) changes.
+  // This happens on initial load if localStorage has data, or if App.js updates it.
+  useEffect(() => {
+    if (currentAddress) {
+      setStrasse(currentAddress.strasse || '');
+      setHausnummer(currentAddress.hausnummer || '');
+      setPostleitzahl(currentAddress.postleitzahl || '');
+      setStadt(currentAddress.stadt || '');
+      // console.log("AddressForm: Fields updated from currentAddress prop", currentAddress);
+    } else {
+      // If currentAddress is null (e.g., first ever load, or cleared state)
+      // You might want to clear fields or not, depending on desired UX.
+      // For now, let's clear them if currentAddress becomes null.
+      setStrasse('');
+      setHausnummer('');
+      setPostleitzahl('');
+      setStadt('');
+    }
+  }, [currentAddress]); // Re-run ONLY if currentAddress prop changes
 
   const handleSubmit = (event) => {
-    console.log("AddressForm: handleSubmit triggered!");
-    event.preventDefault(); // Prevent default form submission (page reload)
+    // console.log("AddressForm: handleSubmit triggered!");
+    event.preventDefault();
     
-    // Basic validation
     if (!strasse || !hausnummer || !postleitzahl || !stadt) {
       setError('All address fields (Street, House No., PLZ, City) are required.');
       return;
     }
-    setError(''); // Clear previous errors
+    setError('');
 
     const addressDetails = {
       strasse,
       hausnummer,
       postleitzahl,
       stadt,
-      land, // Include land if your backend route expects it for all providers
-            // Or if any provider client specifically needs it from this common payload
+      land,
     };
-    onSubmitAddress(addressDetails); // Call the function passed from App.js
+    // App.js (via onSubmitAddress) will now handle saving this to localStorage
+    // as part of the search submission process.
+    onSubmitAddress(addressDetails);
   };
 
   return (
@@ -52,8 +70,8 @@ function AddressForm({ onSubmitAddress, isLoading }) {
       borderWidth="1px" 
       borderRadius="lg" 
       boxShadow="md" 
-      w={{ base: "90%", md: "xl" }} // Responsive width
-      mx="auto" // Center the box
+      w={{ base: "90%", md: "xl" }}
+      mx="auto"
     >
       <Heading as="h2" size="lg" mb={6} textAlign="center">
         Find Internet Offers
@@ -108,24 +126,12 @@ function AddressForm({ onSubmitAddress, isLoading }) {
             />
           </FormControl>
           
-          {/* Optional: Input for Land/Country if needed dynamically 
-          <FormControl>
-            <FormLabel htmlFor="land">Country Code (Land)</FormLabel>
-            <Input
-              id="land"
-              value={land}
-              onChange={(e) => setLand(e.target.value.toUpperCase())} // Example to force uppercase
-              maxLength={2}
-            />
-          </FormControl>
-          */}
-
           <Button
             type="submit"
             colorScheme="teal"
             size="lg"
             width="full"
-            isLoading={isLoading} // Show loading state on button
+            isLoading={isLoading}
             loadingText="Searching..."
           >
             Search Offers

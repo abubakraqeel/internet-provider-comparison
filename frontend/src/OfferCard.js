@@ -8,15 +8,22 @@ import {
   VStack,
   HStack,
   Divider,
-  Button,
-  Badge,
   List,
   ListItem,
   ListIcon,
   Flex,
-  Tooltip
+  Tooltip,
+  Image 
 } from '@chakra-ui/react';
-import { CheckCircleIcon, InfoOutlineIcon, WarningTwoIcon, LockIcon, DownloadIcon, CalendarIcon, SmallCloseIcon } from '@chakra-ui/icons'; // Added SmallCloseIcon for "not included"
+import { CheckCircleIcon, InfoOutlineIcon, WarningTwoIcon, LockIcon, DownloadIcon } from '@chakra-ui/icons';
+
+const providerLogos = {
+  'ByteMe': 'byteme.jpg',
+  'WebWunder': 'webwunder.jpg',
+  'Ping Perfect': 'pingperfect.jpg', 
+  'Servus Speed': 'servus-speed.jpg', 
+  'VerbynDich': 'verbyndich.jpg',
+};
 
 function OfferCard({ offer }) {
   if (!offer) {
@@ -52,7 +59,7 @@ function OfferCard({ offer }) {
     detailItems.push({ text: discountText, icon: CheckCircleIcon, color: 'green.500' });
   }
 
-  // 2. TV Package - MODIFIED
+  // 2. TV Package
   if (offer.tv && typeof offer.tv === 'string' && offer.tv.trim() !== "" && offer.tv.toLowerCase() !== "none") {
     detailItems.push({ text: `TV Package: ${offer.tv}`, icon: InfoOutlineIcon, color: 'purple.500' });
   }
@@ -75,22 +82,16 @@ function OfferCard({ offer }) {
   if (offer.installationServiceIncluded === true) {
     detailItems.push({ text: "Installation service included", icon: CheckCircleIcon, color: 'green.500' });
   } else if (offer.installationServiceIncluded === false) {
-    // Only add a note if there's a specific fee mentioned or if we want to state "not included"
     let installationNote = null;
     if (offer.oneTimeCostEur > 0 && offer.benefits && offer.benefits.toLowerCase().includes("installation fee:")) {
         installationNote = `Installation Fee: ${formatPrice(offer.oneTimeCostEur)}`;
         detailItems.push({ text: installationNote, icon: WarningTwoIcon, color: 'red.500' });
     }
-    // else if (offer.installationServiceIncluded === false) { 
-    //    detailItems.push({ text: "Installation not included", icon: SmallCloseIcon, color: 'gray.500' }); // Optional to state "not included"
-    // }
   }
 
-
-  // 6. Other benefits from the generic 'benefits' string (if not already covered)
+  // 6. Other benefits
   const alreadyCoveredKeywordsInBenefits = [
-      "tv package:", // More specific now that we handle offer.tv directly
-      "data limit:", "age restriction:", "installation service included", "installation fee:",
+      "tv package:", "data limit:", "age restriction:", "installation service included", "installation fee:",
       offer.discountType?.toLowerCase().replace(' (monthly)','').replace(' voucher',''),
       "max total €", "min. order €", "throttled after"
   ];
@@ -110,6 +111,7 @@ function OfferCard({ offer }) {
     });
   }
 
+  const logoFileName = offer.providerName ? providerLogos[offer.providerName] : null;
 
   return (
     <Box
@@ -123,13 +125,24 @@ function OfferCard({ offer }) {
       _hover={{ boxShadow: "xl", transform: "translateY(-2px)" }}
     >
       <VStack align="stretch" spacing={3}>
-        <Flex justifyContent="space-between" alignItems="flex-start">
+        <Flex justifyContent="space-between" alignItems="flex-start" minHeight="40px"> 
           <Heading as="h3" size="md" color="blue.700" noOfLines={2} flex="1" mr={2}>
             {offer.productName || 'Unnamed Product'}
           </Heading>
-          <Badge colorScheme="gray" variant="outline" fontSize="xs" ml={2} whiteSpace="nowrap" mt={1}>
-            {offer.providerName || 'Provider'}
-          </Badge>
+          {logoFileName ? (
+            <Image
+              src={`/logos/${logoFileName}`} 
+              alt={`${offer.providerName} logo`}
+              boxSize="50px" 
+              objectFit="contain" 
+              ml={2}
+              mt={1} 
+            />
+          ) : (
+            <Text fontSize="xs" color="gray.600" fontWeight="semibold" ml={2} whiteSpace="nowrap" mt={1}>
+              {offer.providerName || 'Provider'}
+            </Text>
+          )}
         </Flex>
 
         <Divider />
@@ -157,12 +170,11 @@ function OfferCard({ offer }) {
           <Box textAlign="center" minW="100px">
             <Text fontSize="xs" color="gray.500" casing="uppercase">Contract</Text>
             <Text fontSize="lg" fontWeight="bold">
-              {offer.contractTermMonths ? `${offer.contractTermMonths} mths` : 'N/A'}
+              {offer.contractTermMonths ? `${offer.contractTermMonths} months` : 'N/A'}
             </Text>
           </Box>
         </HStack>
         
-        {/* Display Connection Type as a Tag if it exists */}
         {offer.connectionType && (
             <>
                 <Divider my={1}/>
@@ -172,7 +184,7 @@ function OfferCard({ offer }) {
             </>
         )}
         
-        {detailItems.length > 0 ? (
+        {detailItems.length > 0 && (
           <Box pt={2}>
             <Heading as="h4" size="xs" mb={2} color="gray.700" casing="uppercase">
               Key Details & Benefits:
@@ -188,11 +200,8 @@ function OfferCard({ offer }) {
               ))}
             </List>
           </Box>
-        ) : null}
+        )}
 
-        <Button mt={3} colorScheme="blue" variant="solid" size="sm" alignSelf="center" w={{base: "80%", md: "60%"}}>
-            View Offer
-        </Button>
       </VStack>
     </Box>
   );

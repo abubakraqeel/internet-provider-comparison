@@ -23,10 +23,7 @@ def get_offers():
 
 
     if request.method == 'OPTIONS':
-        # This block should ideally not be hit if flask-cors is working globally.
-        # If it is hit, it means flask-cors didn't fully handle the preflight.
         print("Flask Route: Manually hit OPTIONS block. This is unexpected if global CORS(app) is working.")
-        # Return a minimal valid response. flask-cors *might* still augment this.
         return jsonify(message="OPTIONS preflight processed by route"), 200
 
     # --- POST Request Logic ---
@@ -35,10 +32,9 @@ def get_offers():
     print(f"Flask's interpretation (request.is_json): {request.is_json}")
 
     if not request.is_json:
-        # ... your existing 400 error handling ...
+        
         return jsonify({"error": "Request must be JSON"}), 400
     address = request.get_json()
- # `data` IS the address payload
 
     # Add some basic validation for the payload itself
     if not isinstance(address, dict) or "strasse" not in address: # Example check

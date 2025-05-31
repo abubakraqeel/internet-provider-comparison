@@ -28,12 +28,15 @@ import AddressForm from './AddressForm';
 import OfferList from './OfferList';
 import SharedResultsPage from './SharedResultsPage'; // Ensure this path is correct
 
+const LOCAL_STORAGE_ADDRESS_KEY = 'lastSearchAddress';
+const LOCAL_STORAGE_LAST_RESULTS_KEY = 'lastSearchResults';
+
 // --- Helper: Get unique values for filter options ---
 const getUniqueValues = (offers, key) => {
   if (!offers || offers.length === 0) return [];
   const values = offers
     .map(offer => offer[key] !== null && offer[key] !== undefined ? String(offer[key]) : '')
-    .filter(Boolean); 
+    .filter(Boolean);
   return [...new Set(values)].sort((a, b) => {
     const numA = parseFloat(a);
     const numB = parseFloat(b);
@@ -45,12 +48,12 @@ const getUniqueValues = (offers, key) => {
 };
 
 function App() {
-  const [offers, setOffers] = useState([]); 
+  const [offers, setOffers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
 
-  const [sortBy, setSortBy] = useState(''); 
+  const [sortBy, setSortBy] = useState('');
   const [filterConnectionTypes, setFilterConnectionTypes] = useState([]);
   const [filterProviderNames, setFilterProviderNames] = useState([]);
   const [filterContractTerms, setFilterContractTerms] = useState([]);
@@ -61,18 +64,62 @@ function App() {
   const [isSharing, setIsSharing] = useState(false);
   const [shareError, setShareError] = useState(null);
 
-  const handleAddressSubmit = useCallback(async (addressDetails) => {
+  // This state will hold the address for the current/last search, also used to prefill form
+  const [currentSearchAddress, setCurrentSearchAddress] = useState(null);
+
+  // Load initial state from localStorage when App component mounts
+  useEffect(() => {
+    try {
+      const storedAddress = localStorage.getItem(LOCAL_STORAGE_ADDRESS_KEY);
+      if (storedAddress) {
+        setCurrentSearchAddress(JSON.parse(storedAddress));
+        // console.log("App.js: Loaded initial address from localStorage", JSON.parse(storedAddress));
+      }
+
+      const storedResults = localStorage.getItem(LOCAL_STORAGE_LAST_RESULTS_KEY);
+      if (storedResults) {
+        const parsedResults = JSON.parse(storedResults);
+        if (parsedResults.offers && Array.isArray(parsedResults.offers)) setOffers(parsedResults.offers);
+        if (typeof parsedResults.hasSearched === 'boolean') setHasSearched(parsedResults.hasSearched);
+        if (parsedResults.sortBy) setSortBy(parsedResults.sortBy);
+        if (parsedResults.filterConnectionTypes) setFilterConnectionTypes(parsedResults.filterConnectionTypes);
+        if (parsedResults.filterProviderNames) setFilterProviderNames(parsedResults.filterProviderNames);
+        if (parsedResults.filterContractTerms) setFilterContractTerms(parsedResults.filterContractTerms);
+        // console.log("App.js: Loaded last search results from localStorage");
+      }
+    } catch (e) {
+      console.error("App.js: Error loading from localStorage on mount", e);
+      // Optionally clear corrupted data
+      // localStorage.removeItem(LOCAL_STORAGE_ADDRESS_KEY);
+      // localStorage.removeItem(LOCAL_STORAGE_LAST_RESULTS_KEY);
+    }
+  }, []); // Empty dependency array means this runs once on mount
+
+  const handleAddressSubmit = useCallback(async (addressDetailsFromForm) => {
     setIsLoading(true);
     setError(null);
-    setOffers([]); 
-    setHasSearched(true);
+    setHasSearched(true); 
+
+    // Update current search address state AND save it to localStorage immediately
+    setCurrentSearchAddress(addressDetailsFromForm);
+    try {
+      localStorage.setItem(LOCAL_STORAGE_ADDRESS_KEY, JSON.stringify(addressDetailsFromForm));
+      // console.log("App.js: Saved new search address to localStorage", addressDetailsFromForm);
+    } catch (e) {
+      console.error("App.js: Error saving address to localStorage", e);
+    }
+
+    // Resetting filters on new search is good practice
     setSortBy('');
     setFilterConnectionTypes([]);
     setFilterProviderNames([]);
     setFilterContractTerms([]);
+    
+    // Clear previous offers before fetching new ones to avoid flicker of old data if fetch is slow
+    setOffers([]); 
 
     try {
-      const jsonBody = JSON.stringify(addressDetails);
+      const jsonBody = JSON.stringify(addressDetailsFromForm);
       const response = await fetch('/api/offers', { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -81,18 +128,67 @@ function App() {
 
       if (!response.ok) {
         let errorData;
-        try { errorData = await response.json(); }
-        catch (e) { errorData = { message: `HTTP error! Status: ${response.status}` }; }
+        const responseText = await response.text();
+        console.error("handleAddressSubmit: Server responded with an error. Raw response text:", responseText);
+        try { errorData = JSON.parse(responseText); }
+        catch (e) { errorData = { message: `HTTP error! Status: ${response.status}. Response: ${responseText.substring(0, 200)}...` }; }
+        
+        localStorage.removeItem(LOCAL_STORAGE_LAST_RESULTS_KEY); // Clear stored results on error
         throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
       }
       const data = await response.json();
-      setOffers(data);
+      setOffers(data); // Set new offers
+
+      // Save successful search results to localStorage (including reset filters/sort for this new search)
+      try {
+        const resultsToStore = {
+          offers: data,
+          hasSearched: true,
+          sortBy: '', 
+          filterConnectionTypes: [],
+          filterProviderNames: [],
+          filterContractTerms: [],
+        };
+        localStorage.setItem(LOCAL_STORAGE_LAST_RESULTS_KEY, JSON.stringify(resultsToStore));
+        // console.log("App.js: Saved new search results to localStorage", resultsToStore);
+      } catch (e) {
+        console.error("App.js: Error saving search results to localStorage", e);
+      }
+
     } catch (err) {
+      console.error("handleAddressSubmit: Error caught in try-catch block:", err);
       setError(err.message || 'Failed to fetch offers. Please try again.');
+      // Offers already cleared or will be empty due to error, ensure stored results are also cleared
+      localStorage.removeItem(LOCAL_STORAGE_LAST_RESULTS_KEY); 
     } finally {
       setIsLoading(false);
     }
-  }, []); 
+  }, []); // Dependencies are empty as we manage internal state explicitly or it's reset.
+
+  // Effect to save filter/sort changes to localStorage
+  useEffect(() => {
+    // Only save if a search has been made and there are offers to apply filters to
+    if (hasSearched && offers.length > 0) { 
+      try {
+        // Retrieve existing stored results to preserve offers & hasSearched status
+        const storedResults = JSON.parse(localStorage.getItem(LOCAL_STORAGE_LAST_RESULTS_KEY) || '{}');
+        const dataToStore = {
+          ...storedResults, // This will include offers and hasSearched from the last successful search
+          offers: offers,   // Ensure current offers are part of what's saved with filters
+          hasSearched: hasSearched, // And current search status
+          sortBy: sortBy,
+          filterConnectionTypes: filterConnectionTypes,
+          filterProviderNames: filterProviderNames,
+          filterContractTerms: filterContractTerms,
+        };
+        localStorage.setItem(LOCAL_STORAGE_LAST_RESULTS_KEY, JSON.stringify(dataToStore));
+        // console.log("App.js: Updated filters/sort in localStorage", dataToStore);
+      } catch (e) {
+        console.error("App.js: Error updating filters/sort in localStorage", e);
+      }
+    }
+  }, [sortBy, filterConnectionTypes, filterProviderNames, filterContractTerms, offers, hasSearched]);
+
 
   const availableConnectionTypes = useMemo(() => getUniqueValues(offers, 'connectionType'), [offers]);
   const availableProviderNames = useMemo(() => getUniqueValues(offers, 'providerName'), [offers]);
@@ -125,6 +221,8 @@ function App() {
   };
 
   const handleShareResults = async () => {
+    // ... (handleShareResults logic remains the same - it uses 'displayedOffers') ...
+    console.log("handleShareResults: Triggered. Offers to share:", displayedOffers);
     if (displayedOffers.length === 0) {
       setShareError("No offers to share.");
       onShareModalOpen();
@@ -134,21 +232,36 @@ function App() {
     setShareError(null);
     setShareableLink('');
     try {
+      const requestBody = JSON.stringify(displayedOffers);
+      console.log("handleShareResults: Sending POST to /api/share with body:", requestBody);
       const response = await fetch('/api/share', { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(displayedOffers)
+        body: requestBody
       });
+      console.log("handleShareResults: Received response from /api/share. Status:", response.status, "StatusText:", response.statusText);
+
       if (!response.ok) {
-        const errData = await response.json().catch(() => ({ error: "Failed to create share link (server error)." }));
-        throw new Error(errData.error || "Failed to create share link.");
+        let errorData;
+        const responseText = await response.text();
+        console.error("handleShareResults: Server responded with an error. Raw response text:", responseText);
+        try { errorData = JSON.parse(responseText); } 
+        catch (e) { errorData = { error: `Server error: ${response.status} ${response.statusText}. Response: ${responseText.substring(0, 200)}...` }; }
+        throw new Error(errorData.error || "Failed to create share link.");
       }
       const result = await response.json();
-      const fullShareLink = `${window.location.origin}/share/${result.shareId}`; // Assumes shareId is returned
+      console.log("handleShareResults: Successfully created share link. Server response:", result);
+      if (!result.shareId) {
+        console.error("handleShareResults: Server response OK, but 'shareId' is missing in the result:", result);
+        throw new Error("Failed to create share link: Invalid response from server (missing shareId).");
+      }
+      const fullShareLink = `${window.location.origin}/share/${result.shareId}`;
       setShareableLink(fullShareLink);
     } catch (err) {
+      console.error("handleShareResults: Error caught in try-catch block:", err);
       setShareError(err.message || "Could not create share link.");
     } finally {
+      console.log("handleShareResults: Finally block executing.");
       setIsSharing(false);
       onShareModalOpen();
     }
@@ -159,7 +272,11 @@ function App() {
       <Heading as="h1" size="2xl" textAlign="center" color="teal.600" my={8}>
         Internet Provider Comparison
       </Heading>
-      <AddressForm onSubmitAddress={handleAddressSubmit} isLoading={isLoading} />
+      <AddressForm
+        onSubmitAddress={handleAddressSubmit}
+        isLoading={isLoading}
+        currentAddress={currentSearchAddress} // Pass the App.js managed current address
+      />
 
       {!isLoading && !error && hasSearched && offers.length > 0 && (
         <Box p={5} borderWidth="1px" borderRadius="lg" bg="white" boxShadow="lg" mt={6}>
@@ -267,7 +384,7 @@ function App() {
                     width="full"
                 >
                     <ChakraButton colorScheme="whatsapp" width="full" size="sm"> 
-                        Share on WhatsApp {/* Actual icon would require an icon library */}
+                        Share on WhatsApp
                     </ChakraButton>
                 </ChakraLink>
               </VStack>
