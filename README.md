@@ -139,7 +139,7 @@ To enhance user experience and meet the "session state" requirement:
 
 ## Deployment
 
-The application is deployed on PythonAnywhere (Hacker Plan).
+The application is deployed on [PythonAnywhere](https://abubakraqeel.eu.pythonanywhere.com/).
 *   The Flask backend serves the static React build files.
 *   Environment variables on PythonAnywhere are used for API keys and database credentials.
 *   A MySQL database hosted on PythonAnywhere is used for the share link feature.
