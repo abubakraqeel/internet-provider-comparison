@@ -1,4 +1,11 @@
+.env
 env/
+venv/
 __pycache__/
 *.pyc
-.env
+*.db
+*.sqlite3
+shared_links.db # Important! Don't commit your local dev database
+node_modules/
+frontend/node_modules/
+

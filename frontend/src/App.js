@@ -134,7 +134,6 @@ function App() {
     setShareError(null);
     setShareableLink('');
     try {
-      // *** UPDATED FETCH URL FOR CREATING SHARE LINK ***
       const response = await fetch('/api/share', { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -51,6 +51,10 @@ def create_app():
         # Default to SQLite (e.g., for local development)
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(project_root, 'shared_links.db')
         print(f"Flask __init__: Using SQLite.")
+        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+                'pool_recycle': 280,  # Recycle connections older than 280 seconds (just under 5 mins)
+                'pool_pre_ping': True # Enable pre-ping to check connection validity
+            }
 
     print(f"Flask __init__: SQLALCHEMY_DATABASE_URI set to: {app.config['SQLALCHEMY_DATABASE_URI']}")
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
