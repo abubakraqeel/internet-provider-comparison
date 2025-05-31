@@ -61,8 +61,8 @@ def _normalize_servus_speed_offer(product_detail_data, product_id):
     if limit_from_val is not None:
         benefits.append(f"Data limit: {limit_from_val} GB/month")
 
-    # if max_age is not None:
-    #     benefits.append(f"Offer valid for customers up to {max_age} years old")
+    if max_age is not None:
+        benefits.append(f"Offer valid for customers up to {max_age} years old")
     '''{
     "_provider_specific_id": "a3cbbf1b918bec17",
     "ageRestrictionMax": 31,
@@ -112,7 +112,7 @@ def _fetch_single_product_detail(product_id, address_payload, auth_obj, headers_
     detail_url = f"{product_details_base_url}{product_id}"
     
     try:
-        print(f"Servus Speed (Thread for {product_id} at {time.strftime('%H:%M:%S')}): Requesting details...")
+        # print(f"Servus Speed (Thread for {product_id} at {time.strftime('%H:%M:%S')}): Requesting details...")
         response_step2 = requests.post(
             detail_url,
             json={"address": address_payload}, 
@@ -121,11 +121,11 @@ def _fetch_single_product_detail(product_id, address_payload, auth_obj, headers_
             # timeout=25
         )
         response_received_time = time.time()
-        print(f"Servus Speed (Thread for {product_id} at {time.strftime('%H:%M:%S')}): Response received in {response_received_time - start_time:.2f}s. Status: {response_step2.status_code}")
+        # print(f"Servus Speed (Thread for {product_id} at {time.strftime('%H:%M:%S')}): Response received in {response_received_time - start_time:.2f}s. Status: {response_step2.status_code}")
         response_step2.raise_for_status()
         product_detail_data = response_step2.json()
         json_parsed_time = time.time()
-        print(f"Servus Speed (Thread for {product_id} at {time.strftime('%H:%M:%S')}): JSON parsed in {json_parsed_time - response_received_time:.2f}s.")
+        # print(f"Servus Speed (Thread for {product_id} at {time.strftime('%H:%M:%S')}): JSON parsed in {json_parsed_time - response_received_time:.2f}s.")
 
         normalized_offer = _normalize_servus_speed_offer(product_detail_data, product_id)
         if normalized_offer:
@@ -146,7 +146,7 @@ def _fetch_single_product_detail(product_id, address_payload, auth_obj, headers_
         print(f"Servus Speed (Thread for {product_id}): Unexpected error: {e}")
     finally: # Ensure end time is logged even if an error occurs
         end_time = time.time()
-        print(f"Servus Speed (Thread for {product_id} at {time.strftime('%H:%M:%S')}): Task finished in {end_time - start_time:.2f}s total.")
+        # print(f"Servus Speed (Thread for {product_id} at {time.strftime('%H:%M:%S')}): Task finished in {end_time - start_time:.2f}s total.")
     return None 
 
 
