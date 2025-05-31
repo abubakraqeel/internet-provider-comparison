@@ -41,7 +41,7 @@ def _parse_verbyndich_description(description_str):
     # 2. Connection Type
     conn_type_match = re.search(r"eine (DSL|Cable|Fiber)-Verbindung", description_str)
     if conn_type_match:
-        type_map = {"dsl": "DSL", "cable": "CABLE", "fiber": "FIBER"} # Normalize case
+        type_map = {"dsl": "DSL", "cable": "Cable", "fiber": "Fiber"} # Normalize case
         details["connectionType"] = type_map.get(conn_type_match.group(1).lower())
 
     # 3. Speed (Download)

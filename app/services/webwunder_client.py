@@ -107,7 +107,7 @@ def _normalize_webwunder_offer_from_lxml(product_element): # product_element is 
             "monthlyPriceEur": monthly_price_eur,
             "monthlyPriceEurAfter2Years": monthly_price_eur_after_2_years,
             "contractTermMonths": contract_term_months,
-            "connectionType": connection_type,
+            "connectionType": connection_type.title() if connection_type and connection_type != "DSL" else connection_type,
             "benefits": ", ".join(benefits_list) if benefits_list else "N/A",
             "tv": tv_package, # Populated if found
             "discount": discount_value_eur, # Value of discount in EUR

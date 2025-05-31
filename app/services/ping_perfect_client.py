@@ -48,13 +48,13 @@ def _normalize_ping_perfect_offer(offer_data, index): # offer_data is an Interne
         # --- Extract from ProductInfo ---
         speed_mbps = product_info.get("speed") # Assuming download
         contract_months = product_info.get("contractDurationInMonths")
-        connection_type_api = product_info.get("connectionType") # DSL, CABLE, FIBER, MOBILE
+        connection_type_api = product_info.get("connectionType").title() # DSL, CABLE, FIBER, MOBILE
         tv_package_api = product_info.get("tv") # String or None
         limit_from_api = product_info.get("limitFrom") # Int or None (assume GB)
         max_age_api = product_info.get("maxAge") # Int or None
         
         # Construct a product name
-        product_name = f"{api_provider_name} {connection_type_api}"
+        product_name = api_provider_name
 
 
         # --- Extract from PricingDetails ---
