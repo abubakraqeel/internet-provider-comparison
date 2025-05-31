@@ -22,7 +22,7 @@ const providerLogos = {
   'WebWunder': 'webwunder.jpg',
   'Ping Perfect': 'pingperfect.jpg', 
   'Servus Speed': 'servus-speed.jpg', 
-  'VerbynDich': 'verbyndich.jpg',
+  'Verbyndich': 'verbyndich.jpg',
 };
 
 function OfferCard({ offer }) {

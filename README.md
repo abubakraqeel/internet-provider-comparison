@@ -148,7 +148,6 @@ The application is deployed on [PythonAnywhere](https://abubakraqeel.eu.pythonan
 
 *   **Address Autocompletion:** Could be added using a service like Google Places API.
 *   **Input Validation:** Basic client-side validation is present; more comprehensive backend validation could be added.
-*   **Advanced Caching:** For very high traffic, a more robust caching solution like Redis could be used for API responses instead of Flask-Caching's `SimpleCache` or just `localStorage` for client-side views.
-*   **Dedicated Logging:** Implementing Python's `logging` module for more structured backend logging.
+*   **Advanced Caching:** For very high traffic, a more robust caching solution like Redis could be used for API responses instead `localStorage` for client-side views.
 
 ---

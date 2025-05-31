@@ -73,7 +73,7 @@ def _normalize_webwunder_offer_from_lxml(product_element):
             "providerName": "WebWunder", "productName": product_name,
             "downloadSpeedMbps": download_speed_mbps, "uploadSpeedMbps": None,
             "monthlyPriceEur": monthly_price_eur, "monthlyPriceEurAfter2Years": monthly_price_eur_after_2_years,
-            "contractTermMonths": contract_term_months, "connectionType": conn_type_str.title() if conn_type_str else None,
+            "contractTermMonths": contract_term_months, "connectionType": conn_type_str.title() if conn_type_str and conn_type_str != "DSL" else conn_type_str,
             "benefits": ", ".join(benefits_list) if benefits_list else "N/A", "tv": None,
             "discount": discount_value_eur, "discountType": discount_type_str,
             "installationServiceIncluded": None, "ageRestrictionMax": None, "dataLimitGb": None,
