@@ -139,7 +139,7 @@ To enhance user experience and meet the "session state" requirement:
 
 ## Deployment
 
-The application is deployed on [PythonAnywhere](https://abubakraqeel.eu.pythonanywhere.com/). Please allow approximately 30 seconds for the offers to be fetched and displayed.
+The application is deployed on [PythonAnywhere](https://internet-provider-comparison.up.railway.app/). This is a video demonstration of the [Share link feature](https://youtu.be/VyQhrOGVDpI)
 *   The Flask backend serves the static React build files.
 *   Environment variables on PythonAnywhere are used for API keys and database credentials.
 *   A MySQL database hosted on PythonAnywhere is used for the share link feature.
