@@ -69,4 +69,4 @@ COPY --from=frontend-builder /app/frontend/build ./frontend/build
 # Command to run the application using Gunicorn
 # Railway will set the PORT environment variable. Gunicorn will bind to 0.0.0.0:$PORT
 # Ensure application:application points to your Flask app object (application.py file, application variable)
-CMD ["gunicorn", "--bind", "0.0.0.0:$PORT", "application:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "application:application"]
